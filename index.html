@@ -1,0 +1,70 @@
+<html>
+<head>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+</head>
+<body>
+    <p id="msg"></p>
+
+    <form>
+        <label>N </label><input type="text" name="north"/>
+        <label>W </label><input type="text" name="west"/>
+        <label>dlng (dx): </label><input type="text" name="width"/>
+        <label>dlat (dy): </label><input type="text" name="height"/>
+        <button type="submit">Get</button>
+    </form>
+
+    <textarea></textarea>
+    <button id="send">Send message</button>
+
+    <script>
+        $(document).ready(function() {
+            var ws = new WebSocket('ws://localhost:7631'),
+                $msg = $('#msg'),
+                $ta = $('textarea');
+
+            ws.onmessage = function(msg) {
+                $msg.text(msg.data);
+            };
+
+            var fmtMap = {
+                north: 0,
+                west: 1,
+                width: 2,
+                height: 3
+            };
+
+            $('form').on('submit', function(ev) {
+                var msg = {
+                        bounds: {
+                            fmt: 'nwwh',
+                            values: [null, null, null, null]
+                        },
+                        resolution: [128, 128]
+                    },
+                    bounds = msg.bounds,
+                    form;
+
+
+                form = $(this).serializeArray();
+                $.each(form, function(index, input) {
+                    var i = fmtMap[input.name];
+                    bounds.values[i] = parseFloat(input.value);
+                });
+
+                ev.preventDefault();
+                $msg.text(JSON.stringify(msg));
+                ws.send(JSON.stringify(msg));
+            });
+
+
+            $('#send').click(function(ev) {
+                ws.send(JSON.stringify({
+                    'a number': 43.4,
+                    'value': $ta.val()
+                }));
+                $ta.val('');
+            });
+        });
+    </script>
+</body>
+</html>

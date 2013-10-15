@@ -1,0 +1,9 @@
+[submodule "gridfloat"]
+	path = gridfloat
+	url = https://github.com/bauerca/gridfloat.git
+[submodule "jsnn"]
+	path = jsnn
+	url = https://github.com/bauerca/jsnn.git
+[submodule "libwebsockets"]
+	path = libwebsockets
+	url = git://git.libwebsockets.org/libwebsockets
