@@ -8,5 +8,11 @@ add_subdirectory(libwebsockets)
 add_subdirectory(jsnn)
 add_subdirectory(gridfloat)
 
-add_executable(servelev src/main.c)
-target_link_libraries(servelev websockets jsmn gf)
+set(SOURCES
+  src/main.c
+  src/parse_request.c
+)
+
+add_executable(servelev ${SOURCES})
+set_target_properties(servelev PROPERTIES COMPILE_FLAGS "-g")
+target_link_libraries(servelev websockets jsnn gf)

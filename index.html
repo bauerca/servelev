@@ -13,17 +13,25 @@
         <button type="submit">Get</button>
     </form>
 
-    <textarea></textarea>
-    <button id="send">Send message</button>
-
     <script>
         $(document).ready(function() {
             var ws = new WebSocket('ws://localhost:7631'),
                 $msg = $('#msg'),
                 $ta = $('textarea');
 
+            ws.binaryType = 'arraybuffer';
             ws.onmessage = function(msg) {
-                $msg.text(msg.data);
+                //$msg.text(msg.data);
+                console.log(msg.data.byteLength);
+                console.log(msg.data);
+
+                var arr = new Float32Array(msg.data, 16); //, msg.data.byteLength - 16);
+                for (var i = 0; i < arr.length; i++)
+                    console.log(arr[i]);
+            };
+
+            ws.onerror = function(err) {
+                console.log(err);
             };
 
             var fmtMap = {
@@ -34,12 +42,13 @@
             };
 
             $('form').on('submit', function(ev) {
+                console.log('sending...');
                 var msg = {
                         bounds: {
-                            fmt: 'nwwh',
+                            format: 'NWwh',
                             values: [null, null, null, null]
                         },
-                        resolution: [128, 128]
+                        resolution: 16
                     },
                     bounds = msg.bounds,
                     form;
@@ -52,18 +61,10 @@
                 });
 
                 ev.preventDefault();
-                $msg.text(JSON.stringify(msg));
+                //$msg.text(JSON.stringify(msg));
                 ws.send(JSON.stringify(msg));
             });
 
-
-            $('#send').click(function(ev) {
-                ws.send(JSON.stringify({
-                    'a number': 43.4,
-                    'value': $ta.val()
-                }));
-                $ta.val('');
-            });
         });
     </script>
 </body>
