@@ -15,4 +15,4 @@ set(SOURCES
 
 add_executable(servelev ${SOURCES})
 set_target_properties(servelev PROPERTIES COMPILE_FLAGS "-g")
-target_link_libraries(servelev websockets jsnn gf)
+target_link_libraries(servelev websockets jsnn gf png z)

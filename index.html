@@ -6,18 +6,21 @@
     <p id="msg"></p>
 
     <form>
-        <label>N </label><input type="text" name="north"/>
-        <label>W </label><input type="text" name="west"/>
-        <label>dlng (dx): </label><input type="text" name="width"/>
-        <label>dlat (dy): </label><input type="text" name="height"/>
+        <label>N </label><input type="text" value="45.37120" name="north"/>
+        <label>W </label><input type="text" value="121.69732" name="west"/>
+        <label>width/height: </label><input type="text" value="0.1" name="wh"/>
+        <!-- <label>resolution: </label><input type="text" name="res"/> -->
         <button type="submit">Get</button>
     </form>
 
+    <canvas width="128" height="128"></canvas>
+
     <script>
         $(document).ready(function() {
-            var ws = new WebSocket('ws://localhost:7631'),
+            var ws = new WebSocket('ws://localhost:7631', 'super-dumb-proto'),
                 $msg = $('#msg'),
-                $ta = $('textarea');
+                $ta = $('textarea'),
+                gres = 128;
 
             ws.binaryType = 'arraybuffer';
             ws.onmessage = function(msg) {
@@ -25,39 +28,67 @@
                 console.log(msg.data.byteLength);
                 console.log(msg.data);
 
-                var arr = new Float32Array(msg.data, 16); //, msg.data.byteLength - 16);
-                for (var i = 0; i < arr.length; i++)
-                    console.log(arr[i]);
+                var hdr = String.fromCharCode.apply(null, new Uint8Array(msg.data, 0, 16)).trim();
+                if (hdr === 'SUCCESS') {
+                    var arr, imgData, ctx, i, j;
+                    console.log(hdr);
+                    //var arr = new Float32Array(msg.data, 16); //, msg.data.byteLength - 16);
+                    arr = new Uint8Array(msg.data, 16); //, msg.data.byteLength - 16);
+
+                    var e = $('canvas');
+                    console.log(e);
+                    ctx = $('canvas').get(0).getContext('2d');
+                    imgData = ctx.getImageData(0, 0, gres, gres);
+
+                    for (i = 0; i < gres*gres; i++) {
+                        for (j = 0; j < 3; j++) {
+                            imgData.data[4*i + j] = arr[i];
+                            //console.log(arr[i]);
+                        }
+                        imgData.data[4*i + 3] = 255;
+                    }
+
+                    ctx.putImageData(imgData, 0, 0);
+                }
+                //for (var i = 0; i < 20; i++)
+                //    console.log(arr[i]);
             };
 
             ws.onerror = function(err) {
                 console.log(err);
             };
 
-            var fmtMap = {
-                north: 0,
-                west: 1,
-                width: 2,
-                height: 3
-            };
-
             $('form').on('submit', function(ev) {
                 console.log('sending...');
                 var msg = {
+                        type: 'shade',
                         bounds: {
                             format: 'NWwh',
                             values: [null, null, null, null]
                         },
-                        resolution: 16
+                        resolution: gres
                     },
                     bounds = msg.bounds,
+                    bvals = bounds.values,
                     form;
 
 
                 form = $(this).serializeArray();
                 $.each(form, function(index, input) {
-                    var i = fmtMap[input.name];
-                    bounds.values[i] = parseFloat(input.value);
+                    switch (input.name) {
+                    case 'north':
+                        bvals[0] = parseFloat(input.value);
+                        break;
+                    case 'west':
+                        bvals[1] = parseFloat(input.value);
+                        break;
+                    case 'wh':
+                        bvals[2] = bvals[3] = parseFloat(input.value);
+                        break;
+                    case 'res':
+                        msg.resolution = parseInt(input.value);
+                        break;
+                    }
                 });
 
                 ev.preventDefault();

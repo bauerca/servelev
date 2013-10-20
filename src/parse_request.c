@@ -11,10 +11,11 @@
 static jsnntok_t tokens[JSNN_TOKEN_COUNT];
 static jsnn_parser parser;
 
-int parse_request(const char *msg, gf_grid *grid) {
+int parse_request(const char *msg, int *datatype, gf_grid *grid) {
     jsnnerr_t err;
     jsnntok_t *bounds, *fmt, *vals, *res;
-    char index_str[10];
+    jsnntok_t *dtype_tok;
+    char index_str[10], dtype_str[10];
     int pos;
     /* Grid variables */
     double val, lat, lng, width, height;
@@ -26,6 +27,17 @@ int parse_request(const char *msg, gf_grid *grid) {
     err = jsnn_parse(&parser, msg, tokens, JSNN_TOKEN_COUNT);
     if (err) {
         printf("error in json parse\n");
+        return -1;
+    }
+
+    /* Process data before sending? */
+    dtype_tok = jsnn_get(tokens, "type", msg, tokens);
+    if (jsnn_cmp(dtype_tok, msg, "raw") == 0)
+        *datatype = RAW;
+    else if (jsnn_cmp(dtype_tok, msg, "shade") == 0)
+        *datatype = SHADE;
+    else {
+        printf("Wrong datatype request:\n");
         return -1;
     }
 

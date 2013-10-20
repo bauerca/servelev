@@ -5,9 +5,10 @@
 
 /*
  * {
+ *   "type": "shade | raw",
  *   "grid": {
  *     "bounds": {
- *       "format": "string",
+ *       "format": "NWwh",
  *       "values": "array<double>(4)"
  *     },
  *     "resolution": "array<int>(2)"
@@ -16,8 +17,12 @@
  *
  */
 
+enum {
+    RAW,
+    SHADE
+};
 
-int parse_request(const char *msg, gf_grid *grid);
+int parse_request(const char *msg, int *datatype, gf_grid *grid);
 
 
 #endif
