@@ -55,12 +55,12 @@ const char *err_msgs[] = {
 static jsnntok_t tokens[JSNN_TOKEN_COUNT];
 static jsnn_parser parser;
 
-#define CHUNK_DIM 128
+#define CHUNK_DIM 32
 #define CHUNK_SIZE (sizeof(float) * CHUNK_DIM * CHUNK_DIM)
 /* Overestimate map resolution? 4k x 4k? = 16m pixels.
    If minimum chunk size is ~ 16x16, max chunks to ship
    for a given view 62500. */
-#define QUEUE_SIZE 64
+#define QUEUE_SIZE 1024
 
 struct per_session_data__super_dumb {
     gf_grid queue[QUEUE_SIZE];
